@@ -85,6 +85,7 @@ public enum FontAwesome: String, CaseIterable {
     case arrowDown = "fa-arrow-down"
     case arrowLeft = "fa-arrow-left"
     case arrowRight = "fa-arrow-right"
+    case arrowTurnDownRight = "fa-arrow-turn-down-right"
     case arrowUp = "fa-arrow-up"
     case arrowsAlt = "fa-arrows-alt"
     case arrowsAltH = "fa-arrows-alt-h"
@@ -1548,6 +1549,7 @@ public enum FontAwesome: String, CaseIterable {
             case .arrowDown: return "\u{f063}"
             case .arrowLeft: return "\u{f060}"
             case .arrowRight: return "\u{f061}"
+            case .arrowTurnDownRight: return "\u{e3d6}"
             case .arrowUp: return "\u{f062}"
             case .arrowsAlt: return "\u{f0b2}"
             case .arrowsAltH: return "\u{f337}"
@@ -3014,6 +3016,7 @@ public enum FontAwesome: String, CaseIterable {
             case .arrowDown: return [.solid]
             case .arrowLeft: return [.solid]
             case .arrowRight: return [.solid]
+            case .arrowTurnDownRight: return [.solid]
             case .arrowUp: return [.solid]
             case .arrowsAlt: return [.solid]
             case .arrowsAltH: return [.solid]
