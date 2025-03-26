@@ -7,42 +7,13 @@ typealias Icons = [String: Icon]
 struct Icon: Codable {
     let changes: [String]
     let styles: [String]
+    let aliases: Aliases?
     let unicode: String
     let label: String
-    let svg: [String: SVG]
 }
 
-struct SVG: Codable {
-    let raw: String
-    let viewBox: [String]
-    let width: UInt
-    let height: UInt
-    let path: Path
-}
-
-struct Path: Codable {
-    let path: String
-    let duotonePath: [String]
-
-    // Where we determine what type the value is
-    init(from decoder: Decoder) throws {
-        let container =  try decoder.singleValueContainer()
-
-        // Check for String
-        do {
-            path = try container.decode(String.self)
-            duotonePath = []
-        } catch {
-            // Check for Array
-            duotonePath = try container.decode([String].self)
-            path = ""
-        }
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try duotonePath.isEmpty ? container.encode(path) : container.encode(duotonePath)
-    }
+struct Aliases: Codable {
+    let names: [String]?
 }
 
 extension String {
@@ -59,11 +30,60 @@ extension String {
         if self == "subscript" {
             return "`subscript`"
         }
+        if self == "0" {
+            return "zero"
+        }
+        if self == "00" {
+            return "doubleZero"
+        }
+        if self == "1" {
+            return "one"
+        }
+        if self == "2" {
+            return "two"
+        }
+        if self == "3" {
+            return "three"
+        }
+        if self == "4" {
+            return "four"
+        }
+        if self == "5" {
+            return "five"
+        }
+        if self == "6" {
+            return "six"
+        }
+        if self == "7" {
+            return "seven"
+        }
+        if self == "8" {
+            return "eight"
+        }
+        if self == "9" {
+            return "nine"
+        }
+        if self == "360-degrees" {
+            return "threeHundredAndSixtyDegrees"
+        }
+        if self == "42-group" {
+            return "fortyTwoGroup"
+        }
+        if self == "repeat" {
+            return "`repeat`"
+        }
+        if self == "try" {
+            return "`try`"
+        }
+        if self == "100" {
+            return "oneHundred"
+        }
+
         return self
     }
 }
 
-guard let json = FileManager.default.contents(atPath: "FortAwesome/Font-Awesome/metadata/icons.json") else {
+guard let json = FileManager.default.contents(atPath: "fontawesome-pro/metadata/icons.json") else {
     fatalError("Could not find JSON metadata file")
 }
 
@@ -99,19 +119,29 @@ fontAwesomeEnum += """
 // Font-Awesome submodule and run `./codegen.swift`.
 
 /// An enumaration of FontAwesome icon names.
-// swiftlint:disable file_length type_body_length
+// swiftlint:disable file_length type_body_length identifier_name switch_case_alignment
 public enum FontAwesome: String, CaseIterable {
 
 """
 
 let sortedKeys = Array(icons.keys).sorted(by: <)
 sortedKeys.forEach { key in
-    guard icons[key] != nil else { return }
+    guard let value = icons[key] else { return }
     let enumKeyName = key.filteredKeywords().camelCased(with: "-")
     fontAwesomeEnum += """
         case \(enumKeyName) = \"fa-\(key)\"
 
     """
+
+    if let aliases = value.aliases, let names = aliases.names {
+        for name in names {
+            let enumKeyName = name.filteredKeywords().camelCased(with: "-")
+            fontAwesomeEnum += """
+            case \(enumKeyName) = \"fa-\(name)\"
+        
+        """
+        }
+    }
 }
 
 fontAwesomeEnum += """
@@ -130,12 +160,17 @@ sortedKeys.forEach { key in
                 case .\(enumKeyName): return \"\\u{\(value.unicode)}\"
     """
     fontAwesomeEnum += "\n"
+    
+    if let aliases = value.aliases, let names = aliases.names {
+        for name in names {
+            let enumKeyName = name.filteredKeywords().camelCased(with: "-")
+            fontAwesomeEnum += """
+                        case .\(enumKeyName): return \"\\u{\(value.unicode)}\"
+            """
+            fontAwesomeEnum += "\n"
+        }
+    }
 }
-
-fontAwesomeEnum += """
-            default: return ""
-"""
-fontAwesomeEnum += "\n"
 
 fontAwesomeEnum += """
         }
@@ -158,12 +193,18 @@ sortedKeys.forEach { key in
                 case .\(enumKeyName): return [.\(value.styles.joined(separator: ", ."))]
     """
     fontAwesomeEnum += "\n"
+    
+    
+    if let aliases = value.aliases, let names = aliases.names {
+        for name in names {
+            let enumKeyName = name.filteredKeywords().camelCased(with: "-")
+            fontAwesomeEnum += """
+                        case .\(enumKeyName): return [.\(value.styles.joined(separator: ", ."))]
+            """
+            fontAwesomeEnum += "\n"
+        }
+    }
 }
-
-fontAwesomeEnum += """
-            default: return []
-"""
-fontAwesomeEnum += "\n"
 
 fontAwesomeEnum += """
         }
@@ -207,11 +248,11 @@ sortedBrandsKeys.forEach { key in
 }
 
 fontAwesomeEnum += """
-        
+
         }
     }
 }
 
 """
 
-FileManager.default.createFile(atPath: "FontAwesome/Enum.swift", contents: fontAwesomeEnum.data(using: .utf8), attributes: nil)
+FileManager.default.createFile(atPath: "Enum.swift", contents: fontAwesomeEnum.data(using: .utf8), attributes: nil)
